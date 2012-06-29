@@ -28,10 +28,10 @@ class FreeBrenna(object):
             print i
             if i.user not in self.users_nagged:
                 self.send_reply(i)
-                time.sleep(45)
+                time.sleep(15)
             self.users_nagged.append(i.user)
         self.last_id = sorted([(x['id']) for x in f['results']])[-1]
-        time.sleep(60*5) #5 minute sleep
+        time.sleep(60*4) #4 minute sleep
         self.savetheworld()
     
     def send_reply(self, i):
@@ -51,5 +51,7 @@ class FreeBrenna(object):
         
 if __name__ == '__main__':
     q = FreeBrenna()
-    q.savetheworld()
-    q.teardown()
+    try:
+        q.savetheworld()
+    except KeyboardInterrupt:
+        q.teardown()
