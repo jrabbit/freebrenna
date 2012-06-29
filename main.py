@@ -24,6 +24,9 @@ class FreeBrenna(object):
     
     def savetheworld(self):
         f = self.t.search(q="-breanna bradley manning", since_id=self.last_id, rpp=100)
+        if not f['results']:
+            time.sleep(60*5) #5 min sleep
+            self.savetheworld()
         for i in [Tweet(x['from_user'], x['id']) for x in f['results']]:
             print i
             if i.user not in self.users_nagged:
@@ -55,3 +58,6 @@ if __name__ == '__main__':
         q.savetheworld()
     except KeyboardInterrupt:
         q.teardown()
+    except Exception as e:
+        q.teardown()
+        raise e
