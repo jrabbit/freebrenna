@@ -1,4 +1,5 @@
 import time
+from datetime import datetime 
 from collections import namedtuple
 import shelve
 
@@ -14,13 +15,10 @@ class FreeBrenna(object):
             oauth_token=auth.oauth_token,
             oauth_token_secret=auth.oauth_token_secret)
         self.s = shelve.open("nagged")
-        if 'users' in self.s:
-            self.users_nagged = self.s['users']
-            self.last_id = self.s['lastid']
-            
-        else:
-            self.users_nagged = []
-            self.last_id = None
+        if 'users' not in self.s:
+            self.s['users'] = []
+            self.s['lastid'] = None
+            self.s['count'] = 0
     
     def savetheworld(self):
         f = self.t.search(q="-breanna bradley manning", since_id=self.last_id, rpp=100)
@@ -29,16 +27,16 @@ class FreeBrenna(object):
             self.savetheworld()
         for i in [Tweet(x['from_user'], x['id']) for x in f['results']]:
             print i
-            if i.user not in self.users_nagged:
+            if i.user not in self.s['users']:
                 self.send_reply(i)
                 time.sleep(15)
-            self.users_nagged.append(i.user)
-        self.last_id = sorted([(x['id']) for x in f['results']])[-1]
+            self.s['users'].append(i.user)
+        self.s['lastid'] = sorted([(x['id']) for x in f['results']])[-1]
         time.sleep(60*4) #4 minute sleep
         self.savetheworld()
     
     def send_reply(self, i):
-        text = "@%s http://feministing.com/2011/12/22/why-does-the-media-and-her-supposed-supporters-continue-to-misgender-breanna-manning/" % str(i.user)
+        text = "@%s http://feministing.com/2011/12/22/why-does-the-media-and-her-supposed-supporters-continue-to-misgender-breanna-manning/ #freepvtmanning" % str(i.user)
         self.t.updateStatus(status=text,
          in_reply_to_status_id=str(i.twid),
          lat="39.374325", 
@@ -46,18 +44,24 @@ class FreeBrenna(object):
          display_coordinates= "true")
          #https://en.wikipedia.org/wiki/Midwest_Joint_Regional_Correctional_Facility
 
-    def teardown(self):
-        "Write out nagged_users to file"
-        self.s['users'] = self.users_nagged
-        self.s['lastid'] = self.last_id
-        self.s.close()
-        
+    def islimited(self):
+        if self.s['count'] < 900:
+            return False
+        if 'limitday' in self.s:
+            elif self.s['limitday'].day is not datetime.now().day:
+                return False
+            elif self.s['count'] >= 900:
+                return True
+        elif self.s['count'] >= 900:
+            return True
+      
 if __name__ == '__main__':
     q = FreeBrenna()
     try:
         q.savetheworld()
-    except KeyboardInterrupt:
-        q.teardown()
+    except KeyboardInterrupt as e:
+        q.s.close()
+        raise e
     except Exception as e:
-        q.teardown()
+        q.s.close()
         raise e
