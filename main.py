@@ -8,13 +8,14 @@ import auth
 
 Tweet = namedtuple('Tweet', ['user', 'twid'])
 
-class FreeBrenna(object):
-    def __init__(self):
+class FreeBreanna(object):
+    def __init__(self, f='nagged'):
+        "f is db filename"
         self.t = Twython(app_key=auth.app_key,
             app_secret=auth.app_secret,
             oauth_token=auth.oauth_token,
             oauth_token_secret=auth.oauth_token_secret)
-        self.s = shelve.open("nagged")
+        self.s = shelve.open(f)
         if 'users' not in self.s:
             self.s['users'] = []
             self.s['lastid'] = None
@@ -48,15 +49,15 @@ class FreeBrenna(object):
         if self.s['count'] < 900:
             return False
         if 'limitday' in self.s:
-            elif self.s['limitday'].day is not datetime.now().day:
+            if self.s['limitday'].day is not datetime.now().day:
                 return False
             elif self.s['count'] >= 900:
                 return True
-        elif self.s['count'] >= 900:
+        if self.s['count'] >= 900:
             return True
       
 if __name__ == '__main__':
-    q = FreeBrenna()
+    q = FreeBreanna()
     try:
         q.savetheworld()
     except KeyboardInterrupt as e:
