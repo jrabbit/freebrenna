@@ -22,7 +22,7 @@ class FreeBreanna(object):
             self.s['count'] = 0
     
     def savetheworld(self):
-        f = self.t.search(q="-breanna bradley manning", since_id=self.last_id, rpp=100)
+        f = self.t.search(q="-breanna bradley manning", since_id=self.s['lastid'], rpp=100)
         if not f['results']:
             time.sleep(60*5) #5 min sleep
             self.savetheworld()
